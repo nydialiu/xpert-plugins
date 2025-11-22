@@ -1,6 +1,6 @@
 {
   "name": "@xpert-ai/plugin-pdfium",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/xpert-ai/xpert-plugins.git"
@@ -31,6 +31,7 @@
   },
   "peerDependencies": {
     "@xpert-ai/plugin-sdk": "^3.6.2",
+    "@langchain/core": "0.3.72",
     "zod": "3.25.67",
     "chalk": "4.1.2",
     "@nestjs/common": "^11.1.6"
