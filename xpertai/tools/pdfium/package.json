@@ -27,6 +27,7 @@
   ],
   "dependencies": {
     "@hyzyla/pdfium": "2.1.9",
+    "pngjs": "^7.0.0",
     "tslib": "^2.3.0"
   },
   "peerDependencies": {

@@ -1,9 +1,10 @@
+import { PDFiumLibrary } from '@hyzyla/pdfium'
 import { tool } from '@langchain/core/tools'
 import { getCurrentTaskInput } from '@langchain/langgraph'
 import { z } from 'zod'
 import path from 'path'
 import fs from 'fs/promises'
-import { PDFiumLibrary } from '@hyzyla/pdfium'
+import { PNG } from 'pngjs'
 
 function getMimeType(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase()
@@ -87,7 +88,25 @@ export function buildPdfToMarkdownTool() {
           const bmp = await page.render({ scale: renderScale, render: 'bitmap' })
           const imgFileName = `page-${i + 1}.png`
           const imgFullPath = path.join(outputDir, imgFileName)
-          await fs.writeFile(imgFullPath, bmp.data)
+          const pngData = (() => {
+            // Some renderers return raw BGRA bitmap data; encode it into a real PNG.
+            if (typeof (bmp as any).width === 'number' && typeof (bmp as any).height === 'number') {
+              const { width, height } = bmp as any
+              const bitmap = Buffer.from((bmp as any).data)
+              // Convert BGRA to RGBA if indicated by format flag.
+              if (typeof (bmp as any).format === 'string' && (bmp as any).format.toUpperCase() === 'BGRA') {
+                for (let idx = 0; idx < bitmap.length; idx += 4) {
+                  const b = bitmap[idx]
+                  bitmap[idx] = bitmap[idx + 2]
+                  bitmap[idx + 2] = b
+                }
+              }
+              return PNG.sync.write({ width, height, data: bitmap })
+            }
+            // Fallback: assume data is already an encoded image buffer.
+            return Buffer.from((bmp as any).data)
+          })()
+          await fs.writeFile(imgFullPath, pngData)
 
           markdown += `## Page ${i + 1}\\n\\n`
           markdown += `![Page ${i + 1}](${imgFileName})\\n\\n`
